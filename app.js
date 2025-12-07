@@ -1,5 +1,18 @@
 const API_URL = "https://petcare-backend-production-ad73.up.railway.app";
 
+// CRITICAL: Add this helper for all fetch requests
+const fetchWithCredentials = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    credentials: "include", // CRITICAL: Always include credentials
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+      ...options.headers,
+    },
+  });
+};
+
 const navbar = document.querySelector(".navbar");
 const navLinks = document.querySelector(".nav-links");
 const menuToggle = document.querySelector(".menu-toggle");
@@ -69,15 +82,15 @@ function showMessagePopup(message) {
 
 async function checkAuthStatus() {
   try {
-    const response = await fetch(`${API_URL}/api/check-auth`, {
-      credentials: "include",
-    });
+    console.log("🔍 Checking auth status...");
+    const response = await fetchWithCredentials(`${API_URL}/api/check-auth`);
 
     if (!response.ok) {
-      throw new Error("Authentication check failed");
+      throw new Error("Auth check failed");
     }
 
     const data = await response.json();
+    console.log("✅ Auth response:", data);
 
     if (data.isAuthenticated) {
       currentUser = data.user;
@@ -137,40 +150,32 @@ async function updateAppointmentCounter() {
   try {
     const isAuthenticated = await checkAuthStatus();
 
-    // Early return if not authenticated
     if (!isAuthenticated) {
       startCounterAnimation(0);
       errorCount = 0;
       return;
     }
 
-    const response = await fetch(`${API_URL}/api/appointments/count`, {
-      credentials: "include",
-    });
+    const response = await fetchWithCredentials(
+      `${API_URL}/api/appointments/count`
+    );
 
     if (!response.ok) {
-      throw new Error("Failed to fetch appointment count");
-    }
-
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Invalid response format");
+      throw new Error("Failed to fetch count");
     }
 
     const data = await response.json();
     const count = data.count || 0;
 
     startCounterAnimation(count);
-    errorCount = 0; // Reset error count on success
+    errorCount = 0;
   } catch (error) {
     console.error("Counter update error:", error);
     errorCount++;
 
-    // Use exponential backoff for retries
     const delay = Math.min(1000 * errorCount, 30000);
     await new Promise((resolve) => setTimeout(resolve, delay));
 
-    // Only retry if we're still authenticated
     const stillAuthenticated = await checkAuthStatus();
     if (stillAuthenticated) {
       updateAppointmentCounter();
@@ -198,17 +203,10 @@ async function loadAppointments(adminView = false) {
       return;
     }
 
-    const response = await fetch(`${API_URL}/api/appointments`, {
-      credentials: "include",
-    });
+    const response = await fetchWithCredentials(`${API_URL}/api/appointments`);
 
     if (!response.ok) {
       throw new Error("Failed to load appointments");
-    }
-
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Invalid response format");
     }
 
     const data = await response.json();
@@ -305,15 +303,10 @@ async function cancelAppointment(appointmentId, button) {
     button.disabled = true;
     button.textContent = "Cancelling...";
 
-    const response = await fetch(
+    const response = await fetchWithCredentials(
       `${API_URL}/api/appointments/${appointmentId}/cancel`,
       {
         method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
       }
     );
 
@@ -340,7 +333,6 @@ function setupCancelButtons() {
       ?.textContent.trim()
       .toLowerCase();
 
-    // Initial state
     if (!["pending", "rejected"].includes(status)) {
       button.disabled = true;
       button.style.opacity = "0.6";
@@ -401,23 +393,13 @@ function setupAdminButtons() {
 
 async function updateAppointmentStatus(appointmentId, status) {
   try {
-    const response = await fetch(
+    const response = await fetchWithCredentials(
       `${API_URL}/api/appointments/${appointmentId}/status`,
       {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
         body: JSON.stringify({ status }),
-        credentials: "include",
       }
     );
-
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Server returned an invalid response. Please try again.");
-    }
 
     const data = await response.json();
 
@@ -484,22 +466,15 @@ petCareForm.addEventListener("submit", async function (e) {
       notes: document.getElementById("notes").value,
     };
 
-    const response = await fetch(`${API_URL}/api/appointments`, {
+    console.log("📝 Submitting appointment:", formData);
+
+    const response = await fetchWithCredentials(`${API_URL}/api/appointments`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
       body: JSON.stringify(formData),
-      credentials: "include",
     });
 
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Server returned an invalid response. Please try again.");
-    }
-
     const data = await response.json();
+    console.log("📩 Response:", data);
 
     if (!response.ok || !data.success) {
       throw new Error(data.message || "Failed to book appointment");
@@ -600,22 +575,15 @@ window.addEventListener("beforeunload", () => {
 // =========================
 async function handleLogin(email, password) {
   try {
-    const response = await fetch(`${API_URL}/api/login`, {
+    console.log("🔐 Attempting login for:", email);
+
+    const response = await fetchWithCredentials(`${API_URL}/api/login`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
       body: JSON.stringify({ email, password }),
-      credentials: "include",
     });
 
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Server returned an invalid response. Please try again.");
-    }
-
     const data = await response.json();
+    console.log("📩 Login response:", data);
 
     if (!response.ok || !data.success) {
       throw new Error(
@@ -646,18 +614,9 @@ async function handleLogout() {
       counterInterval = null;
     }
 
-    const response = await fetch(`${API_URL}/api/logout`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/logout`, {
       method: "POST",
-      credentials: "include",
-      headers: {
-        Accept: "application/json",
-      },
     });
-
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
-      throw new Error("Server returned an invalid response. Please try again.");
-    }
 
     const data = await response.json();
 
@@ -676,6 +635,7 @@ async function handleLogout() {
     return false;
   }
 }
+
 // =========================
 // Navbar Scroll Behavior
 // =========================
@@ -719,26 +679,14 @@ document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   });
 });
 
-//login form
-//login form
-//login form
-//login form
-//login form
-//login form
-//login form
-//login form
 // =========================
-// DOM Elements
+// Auth Modal
 // =========================
 const userIcon = document.querySelector(".user-icon");
 const modal = document.getElementById("authModal");
 const closeModal = document.querySelector(".close-modal");
 
-// =========================
-// Modal (Login/Register) Functionality
-// =========================
 function openModal() {
-  // Only open if user is not authenticated
   if (!userIcon.classList.contains("authenticated")) {
     modal.style.display = "flex";
     document.body.style.overflow = "hidden";
@@ -750,9 +698,6 @@ function closeModalFunc() {
   document.body.style.overflow = "auto";
 }
 
-// =========================
-// Auth Tab Toggle
-// =========================
 function setupAuthTabs() {
   document.querySelectorAll(".auth-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
@@ -771,9 +716,6 @@ function setupAuthTabs() {
   });
 }
 
-// =========================
-// Switch Between Login/Register
-// =========================
 function setupFormSwitchers() {
   document.querySelectorAll(".switch-form").forEach((link) => {
     link.addEventListener("click", (e) => {
@@ -784,16 +726,10 @@ function setupFormSwitchers() {
   });
 }
 
-// =========================
-// Auth Functions
-// =========================
 async function registerUser(email, password) {
   try {
-    const response = await fetch(`${API_URL}/api/register`, {
+    const response = await fetchWithCredentials(`${API_URL}/api/register`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
       body: JSON.stringify({ email, password }),
     });
 
@@ -802,7 +738,6 @@ async function registerUser(email, password) {
     if (data.success) {
       showMessagePopup("Registration successful!");
       document.querySelector(`.auth-tab[data-form="login"]`).click();
-      // Clear form fields
       document.getElementById("reg-email").value = "";
       document.getElementById("reg-password").value = "";
       document.getElementById("reg-confirm").value = "";
@@ -817,24 +752,12 @@ async function registerUser(email, password) {
 
 async function loginUser(email, password) {
   try {
-    const response = await fetch(`${API_URL}/api/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      showMessagePopup("Login successful!");
+    const success = await handleLogin(email, password);
+    if (success) {
       setTimeout(() => {
         closeModalFunc();
         updateAuthUI();
       }, 1500);
-    } else {
-      showMessagePopup(data.message || "Login failed");
     }
   } catch (error) {
     console.error("Login error:", error);
@@ -844,16 +767,8 @@ async function loginUser(email, password) {
 
 async function logoutUser() {
   try {
-    const response = await fetch(`${API_URL}/api/logout`, {
-      method: "POST",
-    });
-
-    const data = await response.json();
-
-    if (data.success) {
-      showMessagePopup("Logged out successfully");
-      updateAuthUI();
-    }
+    await handleLogout();
+    updateAuthUI();
   } catch (error) {
     console.error("Logout error:", error);
   }
@@ -861,7 +776,7 @@ async function logoutUser() {
 
 async function checkAuth() {
   try {
-    const response = await fetch(`${API_URL}/api/check-auth`);
+    const response = await fetchWithCredentials(`${API_URL}/api/check-auth`);
     const data = await response.json();
     return data.isAuthenticated;
   } catch (error) {
@@ -870,11 +785,7 @@ async function checkAuth() {
   }
 }
 
-// =========================
-// Popup Functions
-// =========================
 function showLogoutPopup() {
-  // Ensure auth modal is closed first
   closeModalFunc();
   document.getElementById("logoutPopup").style.display = "flex";
 }
@@ -883,9 +794,6 @@ function hideLogoutPopup() {
   document.getElementById("logoutPopup").style.display = "none";
 }
 
-// =========================
-// Form Submission Handlers
-// =========================
 function setupRegisterForm() {
   const registerBtn = document
     .getElementById("registerForm")
@@ -924,30 +832,20 @@ function setupLoginForm() {
   });
 }
 
-// =========================
-// UI Update Functions
-// =========================
 async function updateAuthUI() {
   const isAuthenticated = await checkAuth();
 
   if (isAuthenticated) {
-    // Change user icon behavior to show logout popup
     userIcon.onclick = showLogoutPopup;
     userIcon.classList.add("authenticated");
   } else {
-    // Change user icon behavior to show auth modal
     userIcon.onclick = openModal;
     userIcon.classList.remove("authenticated");
   }
 }
 
-// =========================
-// Event Listeners
-// =========================
 function setupEventListeners() {
-  // Modal events
   userIcon.addEventListener("click", function () {
-    // Default behavior (will be overridden by updateAuthUI if authenticated)
     openModal();
   });
 
@@ -958,7 +856,6 @@ function setupEventListeners() {
     if (e.target === document.getElementById("logoutPopup")) hideLogoutPopup();
   });
 
-  // Logout popup events
   document
     .getElementById("cancelLogout")
     .addEventListener("click", hideLogoutPopup);
@@ -967,35 +864,21 @@ function setupEventListeners() {
     logoutUser();
   });
 
-  // Form events
   setupAuthTabs();
   setupFormSwitchers();
   setupRegisterForm();
   setupLoginForm();
 }
 
-// =========================
-// Initialize
-// =========================
 function init() {
   setupEventListeners();
   updateAuthUI();
 }
 
-// Start the application
 document.addEventListener("DOMContentLoaded", init);
 
-//login form
-//login form
-//login form
-//login form
-//login form
-//login form
-//login form
-//login form
-
 // =========================
-// Animate on Scroll
+// Animations
 // =========================
 const animateOnScroll = () => {
   document.querySelectorAll(".animate__animated").forEach((element) => {
@@ -1014,9 +897,6 @@ window.addEventListener("load", () => {
   window.addEventListener("scroll", animateOnScroll);
 });
 
-// =========================
-// Equal Height for Service Cards
-// =========================
 const equalizeCardHeights = () => {
   if (window.innerWidth > 768) {
     const cards = document.querySelectorAll(".service-card");
@@ -1045,9 +925,8 @@ document
     const messageEl = document.getElementById("contactPopupMessage");
 
     try {
-      const response = await fetch(`${API_URL}/api/contact`, {
+      const response = await fetchWithCredentials(`${API_URL}/api/contact`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: form.name.value,
           email: form.email.value,
