@@ -1,4 +1,4 @@
-const API_URL = "petcare-backend-production-ad73.up.railway.app";
+const API_URL = "https://petcare-backend-production-ad73.up.railway.app";
 
 const navbar = document.querySelector(".navbar");
 const navLinks = document.querySelector(".nav-links");
