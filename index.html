@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PetCare</title>
+    <link rel="stylesheet" href="app.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+    />
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="container">
+        <a href="#" class="logo"><i class="fas fa-paw"></i>PetCare</a>
+        <ul class="nav-links">
+          <li><a href="#" class="nav-link">Home</a></li>
+          <li><a href="#services" class="nav-link">Services</a></li>
+          <li><a href="#about" class="nav-link">About Us</a></li>
+          <li><a href="#contact" class="nav-link">Contact</a></li>
+        </ul>
+
+        <!-- Authentication Modal -->
+        <div class="modal" id="authModal">
+          <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="auth-tabs">
+              <div class="auth-tab active" data-form="register">Register</div>
+              <div class="auth-tab" data-form="login">Login</div>
+            </div>
+
+            <!-- Add empty forms that wrap the inputs -->
+            <form style="display: contents" id="hiddenRegisterForm">
+              <div class="auth-form active" id="registerForm">
+                <div class="form-group">
+                  <label for="reg-email">Email</label>
+                  <input
+                    type="email"
+                    id="reg-email"
+                    name="email"
+                    autocomplete="email"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="reg-password">Password</label>
+                  <input
+                    type="password"
+                    id="reg-password"
+                    name="new-password"
+                    autocomplete="new-password"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="reg-confirm">Confirm Password</label>
+                  <input
+                    type="password"
+                    id="reg-confirm"
+                    name="confirm-password"
+                    autocomplete="new-password"
+                    required
+                  />
+                </div>
+                <button type="button" class="btn">Register</button>
+                <div class="auth-links">
+                  <a href="#" class="switch-form" data-form="login"
+                    >Already have an account? Login</a
+                  >
+                </div>
+              </div>
+            </form>
+
+            <form style="display: contents" id="hiddenLoginForm">
+              <div class="auth-form" id="loginForm">
+                <div class="form-group">
+                  <label for="login-email">Email</label>
+                  <input
+                    type="email"
+                    id="login-email"
+                    name="email"
+                    autocomplete="email"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="login-password">Password</label>
+                  <input
+                    type="password"
+                    id="login-password"
+                    name="current-password"
+                    autocomplete="current-password"
+                    required
+                  />
+                </div>
+                <button type="button" class="btn">Login</button>
+                <div class="auth-links">
+                  <a href="#" class="switch-form" data-form="register"
+                    >Don't have an account? Register</a
+                  >
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- popup messages -->
+        <div class="popup-overlay" id="messagePopup">
+          <div class="popup-content">
+            <p id="popupMessage"></p>
+          </div>
+        </div>
+
+        <div class="popup-overlay" id="logoutPopup">
+          <div class="popup-content">
+            <p>Do you want to log out?</p>
+            <div class="popup-buttons">
+              <button class="btn" id="confirmLogout">Logout</button>
+              <button class="btn popup-cancel-btn" id="cancelLogout">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="navbar-right">
+          <!-- Appointment Cart Icon -->
+          <div class="appointment-cart" id="appointmentCart">
+            <i class="fas fa-calendar-alt"></i>
+            <span class="appointment-count" id="appointmentCount">0</span>
+          </div>
+          <div class="user-icon">
+            <i class="fas fa-user"></i>
+          </div>
+          <div class="menu-toggle" id="menuToggle">
+            <i class="fas fa-bars"></i>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Appointment Cart Overlay -->
+    <div class="appointment-overlay" id="appointmentOverlay">
+      <div class="appointment-panel">
+        <div class="appointment-panel-header">
+          <h2 class="appointment-panel-title">My Appointments</h2>
+          <div class="close-panel" id="closePanel">
+            <i class="fas fa-times"></i>
+          </div>
+        </div>
+        <div class="appointment-content">
+          <table class="appointment-table">
+            <thead>
+              <tr>
+                <th>Pet Name</th>
+                <th>Service</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="appointmentTableBody">
+              <tr>
+                <td data-label="Pet Name"></td>
+                <td data-label="Service"></td>
+                <td data-label="Date"></td>
+                <td data-label="Time"></td>
+                <td data-label="Status">
+                  <span class="appointment-status"></span>
+                </td>
+                <td data-label="Action">
+                  <button class="btn-cancel">Cancel</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <h1 class="animate__animated animate__fadeInDown">
+            Best Care For Your Furry Friends
+          </h1>
+          <p class="animate__animated animate__fadeInUp">
+            Professional pet care services to ensure your pets are happy,
+            healthy, and well-cared for.
+          </p>
+          <a
+            href="#contact"
+            class="btn animate__animated animate__fadeIn"
+            id="bookMeButton"
+            >Book Me</a
+          >
+        </div>
+      </div>
+    </header>
+
+    <!-- Services Section -->
+    <section id="services" class="section services">
+      <div class="container">
+        <h2 class="section-title">Our Services</h2>
+        <div class="services-container">
+          <div class="service-card animate__animated animate__fadeIn">
+            <i class="fas fa-cut"></i>
+            <h3>Pet Grooming</h3>
+            <p>
+              Professional grooming services to keep your pet clean, healthy,
+              and looking their best.
+            </p>
+          </div>
+          <div
+            class="service-card animate__animated animate__fadeIn"
+            style="animation-delay: 0.2s"
+          >
+            <i class="fas fa-stethoscope"></i>
+            <h3>Veterinary Care</h3>
+            <p>
+              Comprehensive health check-ups and treatments by experienced
+              veterinarians.
+            </p>
+          </div>
+          <div
+            class="service-card animate__animated animate__fadeIn"
+            style="animation-delay: 0.4s"
+          >
+            <i class="fas fa-home"></i>
+            <h3>Pet Boarding</h3>
+            <p>
+              Safe and comfortable accommodation for your pets when you're away.
+            </p>
+          </div>
+          <div
+            class="service-card animate__animated animate__fadeIn"
+            style="animation-delay: 0.6s"
+          >
+            <i class="fas fa-walking"></i>
+            <h3>Dog Walking</h3>
+            <p>
+              Regular exercise and outdoor activities for your canine
+              companions.
+            </p>
+          </div>
+          <div
+            class="service-card animate__animated animate__fadeIn"
+            style="animation-delay: 0.8s"
+          >
+            <i class="fas fa-graduation-cap"></i>
+            <h3>Pet Training</h3>
+            <p>
+              Behavioral training and obedience classes for all types of pets.
+            </p>
+          </div>
+          <div
+            class="service-card animate__animated animate__fadeIn"
+            style="animation-delay: 1s"
+          >
+            <i class="fas fa-car"></i>
+            <h3>Pet Transport</h3>
+            <p>Safe and comfortable transportation services for your pets.</p>
+          </div>
+        </div>
+        <div class="container">
+          <div class="book-btn-container">
+            <a href="#" class="btn" id="bookButton">Book an Appointment</a>
+          </div>
+
+          <div class="appointment-form-container" id="appointmentForm">
+            <form class="appointment-form" id="petCareForm">
+              <h2 class="form-title">Schedule Your Pet's Appointment</h2>
+
+              <!-- Owner Information -->
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="ownerName" class="form-label">Your Name*</label>
+                    <input
+                      type="text"
+                      id="ownerName"
+                      class="form-control"
+                      placeholder="Enter your full name"
+                      required
+                    />
+                    <div class="error-message">Please enter your name</div>
+                  </div>
+                </div>
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="ownerEmail" class="form-label"
+                      >Email Address*</label
+                    >
+                    <input
+                      type="email"
+                      id="ownerEmail"
+                      class="form-control"
+                      placeholder="Enter your email"
+                      required
+                    />
+                    <div class="error-message">
+                      Please enter a valid email address
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="ownerPhone" class="form-label"
+                      >Phone Number*</label
+                    >
+                    <input
+                      type="tel"
+                      id="ownerPhone"
+                      class="form-control"
+                      placeholder="Enter your phone number"
+                      required
+                      pattern="[0-9]{10}"
+                    />
+                    <div class="error-message">
+                      Please enter a valid 10-digit phone number
+                    </div>
+                  </div>
+                </div>
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="ownerAddress" class="form-label"
+                      >Address*</label
+                    >
+                    <input
+                      type="text"
+                      id="ownerAddress"
+                      class="form-control"
+                      placeholder="Enter your address"
+                      required
+                    />
+                    <div class="error-message">Please enter your address</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Pet Information -->
+              <h3 class="form-title" style="font-size: 20px; margin-top: 25px">
+                Pet Information
+              </h3>
+
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="petName" class="form-label">Pet's Name*</label>
+                    <input
+                      type="text"
+                      id="petName"
+                      class="form-control"
+                      placeholder="Enter your pet's name"
+                      required
+                    />
+                    <div class="error-message">
+                      Please enter your pet's name
+                    </div>
+                  </div>
+                </div>
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="petType" class="form-label">Pet Type*</label>
+                    <select id="petType" class="form-control" required>
+                      <option value="" disabled selected>
+                        Select pet type
+                      </option>
+                      <option value="dog">Dog</option>
+                      <option value="cat">Cat</option>
+                      <option value="bird">Bird</option>
+                      <option value="rabbit">Rabbit</option>
+                      <option value="hamster">Hamster</option>
+                      <option value="other">Other</option>
+                    </select>
+                    <div class="error-message">Please select your pet type</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="petBreed" class="form-label">Breed*</label>
+                    <input
+                      type="text"
+                      id="petBreed"
+                      class="form-control"
+                      placeholder="Enter your pet's breed"
+                      required
+                    />
+                    <div class="error-message">
+                      Please enter your pet's breed
+                    </div>
+                  </div>
+                </div>
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="petAge" class="form-label">Age*</label>
+                    <input
+                      type="number"
+                      id="petAge"
+                      class="form-control"
+                      placeholder="Enter your pet's age"
+                      min="0"
+                      required
+                    />
+                    <div class="error-message">Please enter a valid age</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Appointment Details -->
+              <h3 class="form-title" style="font-size: 20px; margin-top: 25px">
+                Appointment Details
+              </h3>
+
+              <div class="form-row">
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="appointmentDate" class="form-label"
+                      >Preferred Date*</label
+                    >
+                    <input
+                      type="date"
+                      id="appointmentDate"
+                      class="form-control"
+                      required
+                    />
+                    <div class="error-message">Please select a date</div>
+                  </div>
+                </div>
+                <div class="form-col">
+                  <div class="form-group">
+                    <label for="appointmentTime" class="form-label"
+                      >Preferred Time*</label
+                    >
+                    <select id="appointmentTime" class="form-control" required>
+                      <option value="" disabled selected>Select time</option>
+                      <option value="09:00">9:00 AM</option>
+                      <option value="10:00">10:00 AM</option>
+                      <option value="11:00">11:00 AM</option>
+                      <option value="12:00">12:00 PM</option>
+                      <option value="13:00">1:00 PM</option>
+                      <option value="14:00">2:00 PM</option>
+                      <option value="15:00">3:00 PM</option>
+                      <option value="16:00">4:00 PM</option>
+                      <option value="17:00">5:00 PM</option>
+                    </select>
+                    <div class="error-message">Please select a time</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="serviceType" class="form-label"
+                  >Service Required*</label
+                >
+                <select id="serviceType" class="form-control" required>
+                  <option value="" disabled selected>Select service</option>
+                  <option value="checkup">Regular Check-up</option>
+                  <option value="vaccination">Vaccination</option>
+                  <option value="grooming">Grooming</option>
+                  <option value="dental">Dental Cleaning</option>
+                  <option value="surgery">Surgery Consultation</option>
+                  <option value="emergency">Emergency Care</option>
+                  <option value="other">Other</option>
+                </select>
+                <div class="error-message">Please select a service</div>
+              </div>
+
+              <div class="form-group">
+                <label for="notes" class="form-label">Additional Notes</label>
+                <textarea
+                  id="notes"
+                  class="form-control"
+                  rows="4"
+                  placeholder="Please provide any additional information about your pet's condition or requirements"
+                ></textarea>
+              </div>
+
+              <div class="form-submit">
+                <button type="submit" class="btn submit-btn" id="submitButton">
+                  Submit Appointment
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div class="success-message" id="successMessage">
+            <h3>Appointment Booked Successfully!</h3>
+            <p>
+              We've received your appointment request and will contact you
+              shortly to confirm the details.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section about">
+      <div class="container">
+        <h2 class="section-title">About Us</h2>
+        <div class="about-content">
+          <div class="about-text">
+            <h2>We Care About Your Pets</h2>
+            <p>
+              PetCare is a premium pet care management system dedicated to
+              providing the highest quality care for your beloved pets. Founded
+              in 2015, we have grown to become a trusted name in pet care
+              services.
+            </p>
+            <p>
+              Our team consists of certified veterinarians, experienced
+              groomers, and passionate pet lovers who are committed to ensuring
+              the well-being of your furry friends. We understand that pets are
+              family, and we treat them with the love and care they deserve.
+            </p>
+            <p>
+              At PetCare, we use state-of-the-art equipment and premium products
+              to provide the best services for your pets. Whether it's grooming,
+              healthcare, boarding, or training, we ensure that your pets
+              receive the best attention.
+            </p>
+            <div class="btn-wrapper">
+              <a href="#contact" class="btn">Contact Us</a>
+            </div>
+          </div>
+          <div class="about-img">
+            <img src="./assets/about.png" alt="About PetCare" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section class="section reviews">
+      <div class="container">
+        <h2 class="section-title">What Our Clients Say</h2>
+        <div class="reviews-container">
+          <div class="review-card">
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="review-text">
+              I've been taking my dog to PetCare for grooming for over a year
+              now, and I couldn't be happier with their service. The staff is
+              incredibly friendly and my dog always comes back looking amazing!
+            </p>
+            <div class="reviewer">
+              <img
+                src="./assets/sarah.jpeg"
+                alt="Reviewer"
+                class="reviewer-img"
+              />
+              <div class="reviewer-info">
+                <h4>Sarah Johnson</h4>
+                <p>Dog Owner</p>
+              </div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+            </div>
+            <p class="review-text">
+              The veterinary care at PetCare is exceptional. They diagnosed and
+              treated my cat's condition quickly and effectively. The follow-up
+              care was also outstanding. Highly recommend!
+            </p>
+            <div class="reviewer">
+              <img
+                src="./assets/michael.jpg"
+                alt="Reviewer"
+                class="reviewer-img"
+              />
+              <div class="reviewer-info">
+                <h4>Michael Brown</h4>
+                <p>Cat Owner</p>
+              </div>
+            </div>
+          </div>
+          <div class="review-card">
+            <div class="stars">
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star"></i>
+              <i class="fas fa-star-half-alt"></i>
+            </div>
+            <p class="review-text">
+              I was worried about leaving my pets when going on vacation, but
+              the boarding services at PetCare put my mind at ease. They sent me
+              daily updates and photos, and my pets were happy and healthy when
+              I picked them up.
+            </p>
+            <div class="reviewer">
+              <img
+                src="./assets/emily.jpg"
+                alt="Reviewer"
+                class="reviewer-img"
+              />
+              <div class="reviewer-info">
+                <h4>Emily Wilson</h4>
+                <p>Multiple Pet Owner</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <!-- Contact Section -->
+    <section class="contact section-padding" id="contact">
+      <div class="container">
+        <div class="section-header text-center">
+          <h2>Get In Touch</h2>
+          <p>Have questions or want to work together? Reach out to us!</p>
+        </div>
+
+        <div class="contact-container">
+          <div class="contact-info">
+            <h3>Contact Information</h3>
+            <div class="contact-info-item">
+              <i class="fas fa-map-marker-alt"></i>
+              <p>123 uetp ,CS department<br />Peshawar, Pakistan</p>
+            </div>
+            <div class="contact-info-item">
+              <i class="fas fa-phone"></i>
+              <p>+1 (555) 123-4567</p>
+            </div>
+            <div class="contact-info-item">
+              <i class="fas fa-envelope"></i>
+              <p>info@PetCare.com</p>
+            </div>
+            <div class="contact-info-item">
+              <i class="fas fa-clock"></i>
+              <p>Monday - Friday: 9:00 AM - 5:00 PM</p>
+            </div>
+          </div>
+
+          <div class="contact-form">
+            <form id="contactForm">
+              <div class="form-group">
+                <label for="name">Your Name</label>
+                <input type="text" id="name" name="name" required />
+              </div>
+              <div class="form-group">
+                <label for="email">Your Email</label>
+                <input type="email" id="email" name="email" required />
+              </div>
+              <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" />
+              </div>
+              <div class="form-group">
+                <label for="message">Your Message</label>
+                <textarea id="message" name="message" required></textarea>
+              </div>
+              <button type="submit" class="btn">Send Message</button>
+            </form>
+          </div>
+
+          <!-- Uses your existing popup structure -->
+          <div class="popup-overlay" id="contactPopup">
+            <div class="popup-content">
+              <p id="contactPopupMessage"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="copyright">
+        <p>&copy; 2025 PetCare. All Rights Reserved.</p>
+      </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="app.js"></script>
+  </body>
+</html>
