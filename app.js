@@ -1,6 +1,5 @@
-// =========================
-// DOM Elements
-// =========================
+const API_URL = "petcare-backend-production-ad73.up.railway.app";
+
 const navbar = document.querySelector(".navbar");
 const navLinks = document.querySelector(".nav-links");
 const menuToggle = document.querySelector(".menu-toggle");
@@ -70,7 +69,7 @@ function showMessagePopup(message) {
 
 async function checkAuthStatus() {
   try {
-    const response = await fetch("/api/check-auth", {
+    const response = await fetch(`${API_URL}/api/check-auth`, {
       credentials: "include",
     });
 
@@ -145,7 +144,7 @@ async function updateAppointmentCounter() {
       return;
     }
 
-    const response = await fetch("/api/appointments/count", {
+    const response = await fetch(`${API_URL}/api/appointments/count`, {
       credentials: "include",
     });
 
@@ -199,7 +198,7 @@ async function loadAppointments(adminView = false) {
       return;
     }
 
-    const response = await fetch("/api/appointments", {
+    const response = await fetch(`${API_URL}/api/appointments`, {
       credentials: "include",
     });
 
@@ -306,14 +305,17 @@ async function cancelAppointment(appointmentId, button) {
     button.disabled = true;
     button.textContent = "Cancelling...";
 
-    const response = await fetch(`/api/appointments/${appointmentId}/cancel`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
+    const response = await fetch(
+      `${API_URL}/api/appointments/${appointmentId}/cancel`,
+      {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -399,15 +401,18 @@ function setupAdminButtons() {
 
 async function updateAppointmentStatus(appointmentId, status) {
   try {
-    const response = await fetch(`/api/appointments/${appointmentId}/status`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify({ status }),
-      credentials: "include",
-    });
+    const response = await fetch(
+      `${API_URL}/api/appointments/${appointmentId}/status`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ status }),
+        credentials: "include",
+      }
+    );
 
     const contentType = response.headers.get("content-type");
     if (!contentType || !contentType.includes("application/json")) {
@@ -479,7 +484,7 @@ petCareForm.addEventListener("submit", async function (e) {
       notes: document.getElementById("notes").value,
     };
 
-    const response = await fetch("/api/appointments", {
+    const response = await fetch(`${API_URL}/api/appointments`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -595,7 +600,7 @@ window.addEventListener("beforeunload", () => {
 // =========================
 async function handleLogin(email, password) {
   try {
-    const response = await fetch("/api/login", {
+    const response = await fetch(`${API_URL}/api/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -641,7 +646,7 @@ async function handleLogout() {
       counterInterval = null;
     }
 
-    const response = await fetch("/api/logout", {
+    const response = await fetch(`${API_URL}/api/logout`, {
       method: "POST",
       credentials: "include",
       headers: {
@@ -784,7 +789,7 @@ function setupFormSwitchers() {
 // =========================
 async function registerUser(email, password) {
   try {
-    const response = await fetch("/api/register", {
+    const response = await fetch(`${API_URL}/api/register`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -812,7 +817,7 @@ async function registerUser(email, password) {
 
 async function loginUser(email, password) {
   try {
-    const response = await fetch("/api/login", {
+    const response = await fetch(`${API_URL}/api/login`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -839,7 +844,7 @@ async function loginUser(email, password) {
 
 async function logoutUser() {
   try {
-    const response = await fetch("/api/logout", {
+    const response = await fetch(`${API_URL}/api/logout`, {
       method: "POST",
     });
 
@@ -856,7 +861,7 @@ async function logoutUser() {
 
 async function checkAuth() {
   try {
-    const response = await fetch("/api/check-auth");
+    const response = await fetch(`${API_URL}/api/check-auth`);
     const data = await response.json();
     return data.isAuthenticated;
   } catch (error) {
@@ -868,18 +873,6 @@ async function checkAuth() {
 // =========================
 // Popup Functions
 // =========================
-function showMessagePopup(message) {
-  const popup = document.getElementById("messagePopup");
-  const messageEl = document.getElementById("popupMessage");
-
-  messageEl.textContent = message;
-  popup.style.display = "flex";
-
-  setTimeout(() => {
-    popup.style.display = "none";
-  }, 2000);
-}
-
 function showLogoutPopup() {
   // Ensure auth modal is closed first
   closeModalFunc();
@@ -1052,7 +1045,7 @@ document
     const messageEl = document.getElementById("contactPopupMessage");
 
     try {
-      const response = await fetch("/api/contact", {
+      const response = await fetch(`${API_URL}/api/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -1075,11 +1068,11 @@ document
       setTimeout(() => {
         popup.style.display = "none";
         if (data.success) form.reset();
-      }, 2000); // Changed from 4000 to 2000 milliseconds
+      }, 2000);
     } catch (error) {
       console.error("Submission error:", error);
       messageEl.textContent = error.message || "Error while submitting form";
       popup.style.display = "flex";
-      setTimeout(() => (popup.style.display = "none"), 2000); // Also changed error display to 2 seconds
+      setTimeout(() => (popup.style.display = "none"), 2000);
     }
   });
