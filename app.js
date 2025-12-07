@@ -82,7 +82,6 @@ function showMessagePopup(message) {
 
 async function checkAuthStatus() {
   try {
-    console.log("🔍 Checking auth status...");
     const response = await fetchWithCredentials(`${API_URL}/api/check-auth`);
 
     if (!response.ok) {
@@ -90,7 +89,6 @@ async function checkAuthStatus() {
     }
 
     const data = await response.json();
-    console.log("✅ Auth response:", data);
 
     if (data.isAuthenticated) {
       currentUser = data.user;
@@ -466,15 +464,12 @@ petCareForm.addEventListener("submit", async function (e) {
       notes: document.getElementById("notes").value,
     };
 
-    console.log("📝 Submitting appointment:", formData);
-
     const response = await fetchWithCredentials(`${API_URL}/api/appointments`, {
       method: "POST",
       body: JSON.stringify(formData),
     });
 
     const data = await response.json();
-    console.log("📩 Response:", data);
 
     if (!response.ok || !data.success) {
       throw new Error(data.message || "Failed to book appointment");
@@ -575,15 +570,12 @@ window.addEventListener("beforeunload", () => {
 // =========================
 async function handleLogin(email, password) {
   try {
-    console.log("🔐 Attempting login for:", email);
-
     const response = await fetchWithCredentials(`${API_URL}/api/login`, {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
 
     const data = await response.json();
-    console.log("📩 Login response:", data);
 
     if (!response.ok || !data.success) {
       throw new Error(
